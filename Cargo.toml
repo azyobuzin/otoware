@@ -1,0 +1,14 @@
+[package]
+name = "otoware"
+version = "0.1.0"
+authors = ["azyobuzin <azyobuzin@users.sourceforge.jp>"]
+edition = "2018"
+publish = false
+
+[dependencies]
+bitflags = "1"
+widestring = "0.4"
+
+[dependencies.winapi]
+version = "0.3"
+features = ["coml2api", "combaseapi", "devpkey", "mmdeviceapi", "objbase", "winerror"]
