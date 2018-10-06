@@ -54,7 +54,7 @@ pub fn get_default_audio_capture_endpoint(role: Role) -> ComResult<Option<MMDevi
     get_default_audio_endpoint(DataFlow::Capture, role)
 }
 
-pub fn enumerate_audio_endpoints(data_flow: DataFlow, state_mask: DeviceState) -> ComResult<Vec<MMDevice>> {
+pub fn enumerate_audio_endpoints(data_flow: DataFlow, state_mask: DeviceStateMask) -> ComResult<Vec<MMDevice>> {
     if state_mask.is_empty() { return Ok(Vec::default()); }
 
     let enumerator = create_enumerator()?;
@@ -88,7 +88,7 @@ pub fn enumerate_audio_endpoints(data_flow: DataFlow, state_mask: DeviceState) -
     Ok(result)
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DataFlow {
     Render,
     Capture,
@@ -105,7 +105,7 @@ impl DataFlow {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Role {
     Console,
     Multimedia,
@@ -123,7 +123,7 @@ impl Role {
 }
 
 bitflags! {
-    pub struct DeviceState: DWORD {
+    pub struct DeviceStateMask: DWORD {
         const ACTIVE = 0x00000001;
         const DISABLED = 0x00000002;
         const NOTPRESENT = 0x00000004;
@@ -132,6 +132,7 @@ bitflags! {
     }
 }
 
+#[derive(Clone)]
 pub struct MMDevice(SafeUnknown<IMMDevice>);
 
 impl MMDevice {
@@ -147,6 +148,8 @@ impl MMDevice {
             Ok(str_id)
         }
     }
+
+    // TODO: GetState
 
     pub fn get_device_interface_friendly_name(&self) -> ComResult<WideCString> {
         get_string_property_with_devpkey(self, &devpkey::DEVPKEY_DeviceInterface_FriendlyName)

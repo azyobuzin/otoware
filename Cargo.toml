@@ -11,4 +11,4 @@ widestring = "0.4"
 
 [dependencies.winapi]
 version = "0.3"
-features = ["coml2api", "combaseapi", "devpkey", "mmdeviceapi", "objbase", "winerror"]
+features = ["audioclient", "coml2api", "combaseapi", "devpkey", "mmdeviceapi", "objbase", "winerror"]

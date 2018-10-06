@@ -20,7 +20,7 @@ fn run_on_thread() -> Result<(), Box<std::error::Error + Send + Sync + 'static>>
     println!("Default Render Endpoint: {:?}", get_default_audio_render_endpoint(Role::Console));
     println!("Default Capture Endpoint: {:?}", get_default_audio_capture_endpoint(Role::Console));
 
-    let endpoints = enumerate_audio_endpoints(DataFlow::All, DeviceState::ACTIVE)?;
+    let endpoints = enumerate_audio_endpoints(DataFlow::All, DeviceStateMask::ACTIVE)?;
 
     for endpoint in endpoints.into_iter() {
         fn to_string(result: ComResult<widestring::WideCString>) -> Result<String, Box<std::error::Error>> {
