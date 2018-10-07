@@ -7,7 +7,10 @@ publish = false
 
 [dependencies]
 cpal = "0.8"
+env_logger = "0.5"
 iui = "0.3"
+libc = "0.2"
+log = "0.4"
 rodio = { version = "0.8", default-features = false }
 ui-sys = "=0.1.3" # libui の内部構造に依存するのでバージョンを固定
 
