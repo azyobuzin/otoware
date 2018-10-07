@@ -6,9 +6,9 @@ edition = "2018"
 publish = false
 
 [dependencies]
-bitflags = "1"
-widestring = "0.4"
+cpal = "0.8"
+rodio = { version = "0.8", default-features = false }
 
-[dependencies.winapi]
-version = "0.3"
-features = ["audioclient", "coml2api", "combaseapi", "devpkey", "mmdeviceapi", "objbase", "winerror"]
+[patch.crates-io]
+cpal = { git = "https://github.com/azyobuzin/cpal.git", branch = "WasapiLoopback" }
+rodio = { path = "E:\\repo\\rodio" }

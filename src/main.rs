@@ -1,46 +1,58 @@
-#![feature(min_const_fn)]
 #![allow(dead_code)]
 
-#[macro_use]
-extern crate bitflags;
-extern crate widestring;
-extern crate winapi;
+extern crate cpal;
+extern crate rodio;
 
-mod coreaudio;
-mod com_support;
+mod effects;
 
-use self::com_support::*;
-use self::coreaudio::mmdevice::*;
+use rodio::buffer::SamplesBuffer;
+use rodio::Source;
 
 fn main() {
-    spawn_mta_thread(run_on_thread).join().unwrap().unwrap();
-}
+    let input_device = cpal::devices()
+        .find(|dev| dev.name() == "スピーカー (Realtek High Definition Audio)")
+        .unwrap();
+    let output_device = rodio::devices()
+        .find(|dev| dev.name() == "Realtek HD Audio 2nd output (Realtek High Definition Audio)")
+        .unwrap();
 
-fn run_on_thread() -> Result<(), Box<std::error::Error + Send + Sync + 'static>> {
-    println!("Default Render Endpoint: {:?}", get_default_audio_render_endpoint(Role::Console));
-    println!("Default Capture Endpoint: {:?}", get_default_audio_capture_endpoint(Role::Console));
+    let mut sink = rodio::Sink::new(&output_device);
+    //sink.set_volume(100f32);
+    sink.play();
 
-    let endpoints = enumerate_audio_endpoints(DataFlow::All, DeviceStateMask::ACTIVE)?;
+    let event_loop = cpal::EventLoop::new();
+    let input_format = input_device.default_input_format().unwrap();
+    let stream_id = event_loop.build_input_stream(&input_device, &input_format).unwrap();
+    event_loop.play_stream(stream_id);
 
-    for endpoint in endpoints.into_iter() {
-        fn to_string(result: ComResult<widestring::WideCString>) -> Result<String, Box<std::error::Error>> {
-            Ok(result?.to_string()?)
-        }
+    event_loop.run(move |_, data| {
+        let mut samples =
+            match data {
+                cpal::StreamData::Input { buffer: cpal::UnknownTypeInputBuffer::U16(buffer) } => {
+                    buffer.iter().map(cpal::Sample::to_f32).collect()
+                }
+                cpal::StreamData::Input { buffer: cpal::UnknownTypeInputBuffer::I16(buffer) } => {
+                    buffer.iter().map(cpal::Sample::to_f32).collect()
+                }
+                cpal::StreamData::Input { buffer: cpal::UnknownTypeInputBuffer::F32(buffer) } => {
+                    buffer.to_vec()
+                }
+                cpal::StreamData::Output { buffer: _ } => unreachable!()
+            };
 
-        /*
-        print!(
-            concat!(
-                "DeviceInterface FriendlyName: {:?}\n",
-                "Device Description: {:?}\n",
-                "Device FriendlyName: {:?}\n\n"
-            ),
-            to_string(endpoint.get_device_interface_friendly_name()),
-            to_string(endpoint.get_device_description()),
-            to_string(endpoint.get_device_friendly_name())
-        );
-        */
-        println!("{:?}", endpoint);
-    }
+        const FACTOR: f32 = 150.0;
+        let buf1 = SamplesBuffer::new(input_format.channels, input_format.sample_rate.0, samples.clone());
+        let buf2 = SamplesBuffer::new(input_format.channels, input_format.sample_rate.0, samples.clone());
 
-    Ok(())
+        
+        let source = /*buf1.amplify(0.1)
+            .mix(*/
+                effects::clipping_amplify(buf2/*.band_pass(4000, 2.0)*/, FACTOR)
+                    .amplify(0.7)
+            /*)*/;
+        
+        //let source = effects::clipping_amplify(buf2, FACTOR);
+
+        sink.append(source);
+    });
 }
