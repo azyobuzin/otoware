@@ -1,58 +1,58 @@
 #![allow(dead_code)]
 
 extern crate cpal;
+extern crate iui;
 extern crate rodio;
 
 mod effects;
+mod windows_helper;
 
-use rodio::buffer::SamplesBuffer;
-use rodio::Source;
+use iui::controls;
+use iui::prelude::*;
 
 fn main() {
-    let input_device = cpal::devices()
-        .find(|dev| dev.name() == "スピーカー (Realtek High Definition Audio)")
-        .unwrap();
-    let output_device = rodio::devices()
-        .find(|dev| dev.name() == "Realtek HD Audio 2nd output (Realtek High Definition Audio)")
-        .unwrap();
+    let ui = UI::init().unwrap();
 
-    let mut sink = rodio::Sink::new(&output_device);
-    //sink.set_volume(100f32);
-    sink.play();
+    let mut root_vbox = controls::VerticalBox::new(&ui);
 
-    let event_loop = cpal::EventLoop::new();
-    let input_format = input_device.default_input_format().unwrap();
-    let stream_id = event_loop.build_input_stream(&input_device, &input_format).unwrap();
-    event_loop.play_stream(stream_id);
+    let mut input_combo = controls::Combobox::new(&ui);
+    root_vbox.append(
+        &ui,
+        create_labeled_box(&ui, input_combo.clone(), "入力: "),
+        LayoutStrategy::Compact
+    );
 
-    event_loop.run(move |_, data| {
-        let mut samples =
-            match data {
-                cpal::StreamData::Input { buffer: cpal::UnknownTypeInputBuffer::U16(buffer) } => {
-                    buffer.iter().map(cpal::Sample::to_f32).collect()
-                }
-                cpal::StreamData::Input { buffer: cpal::UnknownTypeInputBuffer::I16(buffer) } => {
-                    buffer.iter().map(cpal::Sample::to_f32).collect()
-                }
-                cpal::StreamData::Input { buffer: cpal::UnknownTypeInputBuffer::F32(buffer) } => {
-                    buffer.to_vec()
-                }
-                cpal::StreamData::Output { buffer: _ } => unreachable!()
-            };
+    let mut output_combo = controls::Combobox::new(&ui);
+    root_vbox.append(
+        &ui,
+        create_labeled_box(&ui, output_combo.clone(), "出力: "),
+        LayoutStrategy::Compact
+    );
 
-        const FACTOR: f32 = 150.0;
-        let buf1 = SamplesBuffer::new(input_format.channels, input_format.sample_rate.0, samples.clone());
-        let buf2 = SamplesBuffer::new(input_format.channels, input_format.sample_rate.0, samples.clone());
+    let mut gain_slider = controls::Slider::new(&ui, 0, 80);
+    root_vbox.append(
+        &ui,
+        create_labeled_box(&ui, gain_slider.clone(), "ゲイン: "),
+        LayoutStrategy::Compact
+    );
 
-        
-        let source = /*buf1.amplify(0.1)
-            .mix(*/
-                effects::clipping_amplify(buf2/*.band_pass(4000, 2.0)*/, FACTOR)
-                    .amplify(0.7)
-            /*)*/;
-        
-        //let source = effects::clipping_amplify(buf2, FACTOR);
+    root_vbox.append(&ui, controls::Spacer::new(&ui), LayoutStrategy::Stretchy);
 
-        sink.append(source);
-    });
+    let mut running_toggle = controls::Checkbox::new(&ui, "音割れさせる");
+    windows_helper::make_push_like(&mut running_toggle);
+    root_vbox.append(&ui, running_toggle.clone(), LayoutStrategy::Compact);
+
+    let mut window = Window::new(&ui, "音割れさせるやつ", 400, 140, WindowType::NoMenubar);
+    window.set_child(&ui, root_vbox);
+    window.show(&ui);
+    ui.main();
+}
+
+fn create_labeled_box(ui: &UI, control: impl Into<controls::Control>, label: &str) -> controls::HorizontalBox
+{
+    let label_control = controls::Label::new(ui, label);
+    let mut hbox = controls::HorizontalBox::new(ui);
+    hbox.append(ui, label_control, LayoutStrategy::Compact);
+    hbox.append(ui, control, LayoutStrategy::Stretchy);
+    hbox
 }
