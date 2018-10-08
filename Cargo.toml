@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["azyobuzin <azyobuzin@users.sourceforge.jp>"]
 edition = "2018"
 publish = false
+license = "MIT"
 
 [dependencies]
 cpal = "0.8"
