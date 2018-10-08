@@ -157,9 +157,9 @@ fn main() {
 
                             // 失敗したので、停止状態にする
                             update_output = false;
+                            playing = false;
                             player.clear();
                             playing_toggle_clone.set_checked(&ui_clone, false);
-                            playing = false;
                         }
                     }
 
@@ -169,6 +169,7 @@ fn main() {
                 }
                 _ => {
                     // 再生不可能なので、すべて停止
+                    playing = false;
                     player.clear();
                     playing_toggle_clone.set_checked(&ui_clone, false);
                     ui_clone.set_enabled(playing_toggle_clone.clone(), false);
