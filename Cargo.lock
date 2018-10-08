@@ -9,7 +9,7 @@ dependencies = [
 [[package]]
 name = "alsa-sys"
 version = "0.1.1"
-source = "git+https://github.com/azyobuzin/cpal.git?branch=WasapiLoopback#2d25f4b09ce1d1b637f31feff83b755a39b73f61"
+source = "git+https://github.com/azyobuzin/cpal.git?branch=WasapiLoopback#3119f3b9f953cb70b87673bd0334d504aeffb83d"
 dependencies = [
  "libc 0.2.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -171,7 +171,7 @@ dependencies = [
 [[package]]
 name = "cpal"
 version = "0.8.2"
-source = "git+https://github.com/azyobuzin/cpal.git?branch=WasapiLoopback#2d25f4b09ce1d1b637f31feff83b755a39b73f61"
+source = "git+https://github.com/azyobuzin/cpal.git?branch=WasapiLoopback#3119f3b9f953cb70b87673bd0334d504aeffb83d"
 dependencies = [
  "alsa-sys 0.1.1 (git+https://github.com/azyobuzin/cpal.git?branch=WasapiLoopback)",
  "core-foundation-sys 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",

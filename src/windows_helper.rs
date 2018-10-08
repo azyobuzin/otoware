@@ -3,7 +3,6 @@ extern crate winapi;
 use std::io;
 use std::mem;
 use iui::controls;
-use iui::prelude::*;
 use log;
 use ui_sys;
 use self::winapi::shared::windef::HWND;
@@ -29,7 +28,7 @@ pub fn make_push_like(checkbox: &mut controls::Checkbox) {
         };
 
         // スタイルに BS_PUSHLIKE を追加
-        let new_style = current_style | BS_PUSHLIKE as isize;
+        let new_style = current_style | BS_PUSHLIKE as LongPtr;
 
         errhandlingapi::SetLastError(0);
         let result = SetWindowLongPtrW(hwnd, GWL_STYLE, new_style);
@@ -43,6 +42,11 @@ pub fn make_push_like(checkbox: &mut controls::Checkbox) {
     }
     // TODO: MinimumSize を書き換えて Button のものにしたらサイズ感もよくなりそうだけど
 }
+
+#[cfg(not(target_arch = "x86"))]
+type LongPtr = isize;
+#[cfg(target_arch = "x86")]
+type LongPtr = i32;
 
 unsafe fn get_hwnd(control: &controls::Control) -> HWND {
     let control_ptr = control.as_ui_control() as usize;

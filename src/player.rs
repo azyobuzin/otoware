@@ -14,7 +14,7 @@ struct OtowarePlayerInner {
     event_loop: cpal::EventLoop,
     input: sync::RwLock<Option<(cpal::StreamId, cpal::Format)>>,
     output_sink: sync::RwLock<Option<rodio::Sink>>,
-    gain: atomic::AtomicUsize, // 0 - 80 [dB]
+    gain: atomic::AtomicUsize, // 0 - 100 [dB]
     volume: atomic::AtomicUsize, // 0 - 100 [%]
     dropped: atomic::AtomicBool,
 }
@@ -68,6 +68,26 @@ impl OtowarePlayer {
 
         // 前の Sink を drop しつつ、新しい Sink を設定
         *self.inner.output_sink.write().unwrap() = Some(sink);
+    }
+
+    pub fn clear(&mut self) {
+        // input を None に
+        let mut input = self.inner.input.write().unwrap();
+        if let Some((prev_stream, _)) = input.take() {
+            self.inner.event_loop.destroy_stream(prev_stream);
+        }
+
+        // output を None に
+        *self.inner.output_sink.write().unwrap() = None;
+    }
+
+    pub fn set_gain(&mut self, value: u8) {
+        self.inner.gain.store(value as usize, atomic::Ordering::Relaxed);
+    }
+
+    pub fn set_volume(&mut self, value: u8) {
+        assert!(value <= 100);
+        self.inner.volume.store(value as usize, atomic::Ordering::Relaxed);
     }
 }
 
